@@ -68,30 +68,26 @@ class Application(tk.Frame):
         for a in files_list:
             self.listOfFiles.insert(n, a)
             n = n + 1
-        #print (">>> ", self.listOfFiles.get(self.listOfFiles.curselection()))
 
     def processSaveData(self):
         try:
-            print (self.recuperar())
-            s = self.listOfFiles.curselection()[0]
-            print (s)
-            print (">>>", self.listOfFiles.selection_set(s))
+            filesToRead = self.getFilesNames()
+            print (filesToRead)
         except:
             pass
         if self.var_for_ext.get() == 0:
-            print ("CSV")
+            pass
         elif self.var_for_ext.get() == 1:
-            print ("XLSX")
+            pass
         elif self.var_for_ext.get() == 2:
-            print ("TXT")
+            pass
 
-
-    def recuperar(self):
+    def getFilesNames(self):
         if len(self.listOfFiles.curselection())!=0:
-            todas = ''
+            allFiles = []
             for posicion in self.listOfFiles.curselection():
-                todas += self.listOfFiles.get(posicion)+"\n"
-        return todas
+                allFiles.append(self.listOfFiles.get(posicion))
+        return allFiles
 
     def simulateFiles(self):
         ubicacion = random.randint(0,6)
