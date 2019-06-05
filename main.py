@@ -29,24 +29,32 @@ class Application(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
+        # Canvas principal donde estará la aplicación
         self.mainCanvas = tk.Canvas(self, width=500, height=420, bg="#f5f5dc")
         self.mainCanvas.pack()
+        # Botón que ejecuta el escaneo de arduino
         self.BotonEscanear = tk.Button(self.mainCanvas, text = "Escanear\nDatalogger",command = self.connectToArduino)
         self.BotonEscanear.place(x=300, y=80)
+        # Botón para salir
         self.Salir = tk.Button(self.mainCanvas, text="Salir", fg="black", command=root.destroy)
         self.Salir.place(x=245, y=380)
-        self.label1 = tk.Label(self.mainCanvas)
-        self.label1.place(x=0, y=0)
+        # Guarda fichero en formato ya definido
         self.saveButton = tk.Button(self.mainCanvas, text="Guardar", fg="black", command=self.processSaveData)
         self.saveButton.place(x=300, y=250)
+        # Guarda la selección de la extensión
         self.var_for_ext = tk.IntVar()
+        # Canvas auxiliar que sirve para ubicar los Radiobutton
         self.canvas_rb_ext  = tk.Canvas(self.mainCanvas, width = 100, height = 100, bg="#f5f5dc")
         self.canvas_rb_ext.place(x=300,y=140)
+        # Etiqueta que solo muestra el mensaje para seleccionar el formato de salida
         tk.Label(self.canvas_rb_ext, text = "Formato Salida").place(x=0,y=0)
+        # Opciones de formato de salida para el archvio que se está analizando
         tk.Radiobutton(self.canvas_rb_ext, text = "CSV", variable = self.var_for_ext, value = 0).place(x=0,y=25)
         tk.Radiobutton(self.canvas_rb_ext, text = "XLSX", variable = self.var_for_ext, value = 1).place(x=0,y=45)
         tk.Radiobutton(self.canvas_rb_ext, text = "TXT", variable = self.var_for_ext, value = 2).place(x=0,y=65)
+        # Etiqueta que sirve para indicar la lista de archivos que está en el arduino
         tk.Label(self.mainCanvas, text = "Lista de Archivos").place(x=100, y=80)
+        #
         self.listOfFiles = tk.Listbox(self.mainCanvas, selectmode=tk.EXTENDED) #EXTENDED permite seleccionar mas de un fichero
         tk.Label(self.mainCanvas, text = "Fecha de Inicio Medición").place(x = 100, y = 300)
         tk.Label(self.mainCanvas, text = "Fecha de Finalización Medición").place(x = 100, y = 325)
@@ -56,24 +64,34 @@ class Application(tk.Frame):
         '''simulacion de archivos'''
         self.listOfFiles.delete(0, tk.END)
         n = 1
-        for a in self.simulateFiles():
+        files_list = self.simulateFiles()
+        for a in files_list:
             self.listOfFiles.insert(n, a)
             n = n + 1
+        #print (">>> ", self.listOfFiles.get(self.listOfFiles.curselection()))
 
     def processSaveData(self):
         try:
+            print (self.recuperar())
             s = self.listOfFiles.curselection()[0]
             print (s)
             print (">>>", self.listOfFiles.selection_set(s))
         except:
             pass
-
         if self.var_for_ext.get() == 0:
             print ("CSV")
         elif self.var_for_ext.get() == 1:
             print ("XLSX")
         elif self.var_for_ext.get() == 2:
             print ("TXT")
+
+
+    def recuperar(self):
+        if len(self.listOfFiles.curselection())!=0:
+            todas = ''
+            for posicion in self.listOfFiles.curselection():
+                todas += self.listOfFiles.get(posicion)+"\n"
+        return todas
 
     def simulateFiles(self):
         ubicacion = random.randint(0,6)
@@ -83,14 +101,6 @@ class Application(tk.Frame):
             a = "HLV%d_%d"%(ubicacion,i)
             archivos_simulados.append(a)
         return archivos_simulados
-
-
-
-
-
-
-
-
 
 root = tk.Tk()
 root.title("Datalogger Reader")
