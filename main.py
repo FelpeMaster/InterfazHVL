@@ -20,6 +20,7 @@
 '''
 
 import tkinter as tk
+from tkinter import ttk
 import random
 
 class Application(tk.Frame):
@@ -35,9 +36,6 @@ class Application(tk.Frame):
         # Botón que ejecuta el escaneo de arduino
         self.BotonEscanear = tk.Button(self.mainCanvas, text = "Escanear\nDatalogger",command = self.connectToArduino)
         self.BotonEscanear.place(x=300, y=80)
-        # Botón para salir
-        self.Salir = tk.Button(self.mainCanvas, text="Salir", fg="black", command=root.destroy)
-        self.Salir.place(x=245, y=380)
         # Guarda fichero en formato ya definido
         self.saveButton = tk.Button(self.mainCanvas, text="Guardar", fg="black", command=self.processSaveData)
         self.saveButton.place(x=300, y=250)
@@ -54,11 +52,22 @@ class Application(tk.Frame):
         tk.Radiobutton(self.canvas_rb_ext, text = "TXT", variable = self.var_for_ext, value = 2).place(x=0,y=65)
         # Etiqueta que sirve para indicar la lista de archivos que está en el arduino
         tk.Label(self.mainCanvas, text = "Lista de Archivos").place(x=100, y=80)
-        #
+        # ListBox muestra Lista de archivos que están disponibles en la SD que se conecta al arduino.
         self.listOfFiles = tk.Listbox(self.mainCanvas, selectmode=tk.EXTENDED) #EXTENDED permite seleccionar mas de un fichero
         tk.Label(self.mainCanvas, text = "Fecha de Inicio Medición").place(x = 100, y = 300)
         tk.Label(self.mainCanvas, text = "Fecha de Finalización Medición").place(x = 100, y = 325)
         self.listOfFiles.place(x=100, y=100)
+        tk.Label(self.mainCanvas, text = "Seleccione Puerto Serial").place(x=220,y=360)
+        #Selección de puerto Serial
+        self.comboSerial = ttk.Combobox(self.mainCanvas)
+        self.comboSerial["values"] = ["COM1","COM2","COM3","COM4","COM5"]
+        self.comboSerial.place(x=220,y=385)
+
+        # Botón para salir
+        self.Salir = tk.Button(self.mainCanvas, text="Salir", fg="black", command=root.destroy)
+        self.Salir.place(x=150, y=385)
+
+
 
     def connectToArduino(self):
         '''simulacion de archivos'''
