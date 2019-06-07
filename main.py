@@ -22,12 +22,23 @@
 import tkinter as tk
 from tkinter import ttk
 import random
+import serial
+import serial.tools.list_ports
 
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.pack()
         self.create_widgets()
+        self.identifyPort()
+        #self.arduino = serial.Serial(port = device, baudrate = 115200)
+
+    def identifyPort(self):
+        comlist = serial.tools.list_ports.comports()
+        devices = []
+        for element in comlist:
+            devices.append(element.device)
+        return devices
 
     def create_widgets(self):
         # Canvas principal donde estará la aplicación
@@ -57,17 +68,21 @@ class Application(tk.Frame):
         tk.Label(self.mainCanvas, text = "Fecha de Inicio Medición").place(x = 100, y = 300)
         tk.Label(self.mainCanvas, text = "Fecha de Finalización Medición").place(x = 100, y = 325)
         self.listOfFiles.place(x=100, y=100)
-        tk.Label(self.mainCanvas, text = "Seleccione Puerto Serial").place(x=220,y=360)
+        # Botón para identificar puerto serial
+        self.SerialPortsButton = tk.Button(self.mainCanvas, text="Buscar", fg="black", command=self.findSerialPorts)
+        self.SerialPortsButton.place(x=100, y=385)
+        tk.Label(self.mainCanvas, text = "Seleccione Puerto Serial").place(x=170,y=360)
         #Selección de puerto Serial
         self.comboSerial = ttk.Combobox(self.mainCanvas)
-        self.comboSerial["values"] = ["COM1","COM2","COM3","COM4","COM5"]
-        self.comboSerial.place(x=220,y=385)
-
+        self.comboSerial.place(x=170,y=385)
         # Botón para salir
         self.Salir = tk.Button(self.mainCanvas, text="Salir", fg="black", command=root.destroy)
-        self.Salir.place(x=150, y=385)
+        self.Salir.place(x=390, y=385)
 
-
+    def findSerialPorts(self):
+        #Buscar puertos seriales disponibles en PC
+        self.comboSerial["values"] = self.identifyPort()
+        pass
 
     def connectToArduino(self):
         '''simulacion de archivos'''
