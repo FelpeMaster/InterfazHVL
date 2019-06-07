@@ -82,16 +82,16 @@ class Application(tk.Frame):
     def findSerialPorts(self):
         #Buscar puertos seriales disponibles en PC
         self.comboSerial["values"] = self.identifyPort()
-        pass
 
     def connectToArduino(self):
-        '''simulacion de archivos'''
         self.listOfFiles.delete(0, tk.END)
-        n = 1
-        files_list = self.simulateFiles()
-        for a in files_list:
-            self.listOfFiles.insert(n, a)
-            n = n + 1
+        port = self.comboSerial.get()
+        self.arduino = serial.Serial(port = port, baudrate = 115200)
+        count = 1
+        while True:
+            for line in self.arduino.readlines():
+                print(str(count) + str(': ') + chr(line) )
+                count = count+1
 
     def processSaveData(self):
         try:
