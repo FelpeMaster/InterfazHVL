@@ -24,6 +24,10 @@ from tkinter import ttk
 import random
 import serial
 import serial.tools.list_ports
+import time
+import pandas as pd
+
+TIEMPODELAY = .01
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -45,7 +49,7 @@ class Application(tk.Frame):
         self.mainCanvas = tk.Canvas(self, width=500, height=420, bg="#f5f5dc")
         self.mainCanvas.pack()
         # Botón que ejecuta el escaneo de arduino
-        self.BotonEscanear = tk.Button(self.mainCanvas, text = "Escanear\nDatalogger",command = self.connectToArduino)
+        self.BotonEscanear = tk.Button(self.mainCanvas, text = "Escanear\nDatalogger",command = self.listFilesInSD)
         self.BotonEscanear.place(x=300, y=80)
         # Guarda fichero en formato ya definido
         self.saveButton = tk.Button(self.mainCanvas, text="Guardar", fg="black", command=self.processSaveData)
@@ -83,20 +87,68 @@ class Application(tk.Frame):
         #Buscar puertos seriales disponibles en PC
         self.comboSerial["values"] = self.identifyPort()
 
-    def connectToArduino(self):
+    def listFilesInSD(self):
         self.listOfFiles.delete(0, tk.END)
         port = self.comboSerial.get()
-        self.arduino = serial.Serial(port = port, baudrate = 115200)
-        count = 1
-        while True:
-            for line in self.arduino.readlines():
-                print(str(count) + str(': ') + chr(line) )
-                count = count+1
+        self.arduino = serial.Serial(port = port, baudrate = 115200, timeout = .5)
+        #dir = self.readArduinoSDFile('filedir.txt')
+        dir = self.readArduinoSDFile('filedir.txt')
+        #print ("Archivos en SD: ", dir)
+
+    def readArduinoSDFile(self, file):
+        with self.arduino:
+            time.sleep(.1)
+            self.arduino.flushInput()
+            self.arduino.flushOutput()
+            msg = bytes(file.encode())
+            ntries = 3
+            while ntries > 0:
+                print ("ntries:", ntries)
+                self.arduino.write(msg)
+                while self.arduino.inWaiting():
+                    lines = self.arduino.readlines()
+                    ntries = 0
+                if ntries > 1:
+                    time.sleep(.5)
+                ntries = ntries - 1
+        self.FilesName = list(dict.fromkeys(lines))
+        self.showFilesInSD()
+        #return lines
+
+    def showFilesInSD(self):
+        for item in self.FilesName:
+            if (item.decode()[-5:-1] == ".CSV"):
+                self.listOfFiles.insert(tk.END, item.decode().replace(" ", ""))
+
+    def parsingProcess(self, msg):
+        node = []
+        timestamp = []
+        diffpress1 = []
+        diffpress2 = []
+        temperature = []
+        for m in msg:
+            try:
+                aux = m.rstrip().split(',')
+                timestamp.append(int(aux[1]))
+                diffpress1.append(float(aux[2]))
+                diffpress2.append(float(aux[3]))
+                temperature.append(float(aux[4]))
+            except:
+                pass
+        meaurements = pd.DataFrame({'timestamp':timestamp,
+                            'diffpress1': diffpress1,
+                            'diffpress2': diffpress2,
+                            'temperature': temperature})
+        return meaurements
 
     def processSaveData(self):
+        #imprimir archivo
+        item = self.listOfFiles.get(self.listOfFiles.curselection())
+        print (type(item))
+
         try:
             filesToRead = self.getFilesNames()
-            print (filesToRead)
+            #print (filesToRead)
         except:
             pass
         if self.var_for_ext.get() == 0:
@@ -114,6 +166,7 @@ class Application(tk.Frame):
         return allFiles
 
     def simulateFiles(self):
+
         ubicacion = random.randint(0,6)
         cantidad = random.randint(1,20)
         archivos_simulados = []
