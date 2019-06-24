@@ -93,9 +93,8 @@ class Application(tk.Frame):
         self.arduino = serial.Serial(port = port, baudrate = 115200, timeout = .5)
         #dir = self.readArduinoSDFile('filedir.txt')
         dir = self.readArduinoSDFile('filedir.txt')
-        #print ("Archivos en SD: ", dir)
 
-    def readArduinoSDFile(self, file):
+    def readArduinoSDFile(self, file, listfiles = True):
         with self.arduino:
             time.sleep(.1)
             self.arduino.flushInput()
@@ -103,7 +102,6 @@ class Application(tk.Frame):
             msg = bytes(file.encode())
             ntries = 3
             while ntries > 0:
-                print ("ntries:", ntries)
                 self.arduino.write(msg)
                 while self.arduino.inWaiting():
                     lines = self.arduino.readlines()
@@ -111,9 +109,13 @@ class Application(tk.Frame):
                 if ntries > 1:
                     time.sleep(.5)
                 ntries = ntries - 1
-        self.FilesName = list(dict.fromkeys(lines))
-        self.showFilesInSD()
-        #return lines
+        if listfiles:
+            self.FilesName = list(dict.fromkeys(lines))
+            self.showFilesInSD()
+            return
+        else:
+            self.dataInSD = list(dict.fromkeys(lines))
+            return self.dataInSD
 
     def showFilesInSD(self):
         for item in self.FilesName:
@@ -128,7 +130,7 @@ class Application(tk.Frame):
         temperature = []
         for m in msg:
             try:
-                aux = m.rstrip().split(',')
+                aux = m.decode().rstrip().split(',')
                 timestamp.append(int(aux[1]))
                 diffpress1.append(float(aux[2]))
                 diffpress2.append(float(aux[3]))
@@ -142,15 +144,9 @@ class Application(tk.Frame):
         return meaurements
 
     def processSaveData(self):
-        #imprimir archivo
         item = self.listOfFiles.get(self.listOfFiles.curselection())
-        print (type(item))
-
-        try:
-            filesToRead = self.getFilesNames()
-            #print (filesToRead)
-        except:
-            pass
+        d = self.readArduinoSDFile(item, listfiles = False)
+        data = self.parsingProcess(d)
         if self.var_for_ext.get() == 0:
             pass
         elif self.var_for_ext.get() == 1:
