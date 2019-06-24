@@ -18,7 +18,7 @@
     def sendMsg(self, message):
         self.write(message)
 '''
-
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 import random
@@ -131,7 +131,7 @@ class Application(tk.Frame):
         for m in msg:
             try:
                 aux = m.decode().rstrip().split(',')
-                timestamp.append(int(aux[1]))
+                timestamp.append(datetime.utcfromtimestamp(int(aux[1])).strftime('%Y-%m-%d %H:%M:%S'))
                 diffpress1.append(float(aux[2]))
                 diffpress2.append(float(aux[3]))
                 temperature.append(float(aux[4]))
@@ -141,35 +141,19 @@ class Application(tk.Frame):
                             'diffpress1': diffpress1,
                             'diffpress2': diffpress2,
                             'temperature': temperature})
-        return meaurements
+        return meaurements.drop_duplicates()
 
     def processSaveData(self):
-        item = self.listOfFiles.get(self.listOfFiles.curselection())
+        item = self.listOfFiles.get(self.listOfFiles.curselection()).rstrip()
         d = self.readArduinoSDFile(item, listfiles = False)
         data = self.parsingProcess(d)
+        print (data.head())
         if self.var_for_ext.get() == 0:
-            pass
+            data.to_csv(item + '.csv', index=False)
         elif self.var_for_ext.get() == 1:
-            pass
+            data.to_excel(item + '.xlsx', index=False)
         elif self.var_for_ext.get() == 2:
-            pass
-
-    def getFilesNames(self):
-        if len(self.listOfFiles.curselection())!=0:
-            allFiles = []
-            for posicion in self.listOfFiles.curselection():
-                allFiles.append(self.listOfFiles.get(posicion))
-        return allFiles
-
-    def simulateFiles(self):
-
-        ubicacion = random.randint(0,6)
-        cantidad = random.randint(1,20)
-        archivos_simulados = []
-        for i in range(cantidad):
-            a = "HLV%d_%d"%(ubicacion,i)
-            archivos_simulados.append(a)
-        return archivos_simulados
+            data.to_csv(item + '.txt', index=False) # al fichero se le debe poner la extensión txt
 
 root = tk.Tk()
 root.title("Datalogger Reader")
